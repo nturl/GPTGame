@@ -1,21 +1,34 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
+// Player's spaceship
 const playerWidth = 30;
 const playerHeight = 30;
 const playerSpeed = 5;
 let playerX = (canvas.width - playerWidth) / 2;
 
-const bulletWidth = 5;
-const bulletHeight = 10;
-const bulletSpeed = 7;
-let bullets = [];
+// Projectile
+const projectileWidth = 5;
+const projectileHeight = 10;
+const projectileSpeed = 8;
+let projectiles = [];
 
+// Enemies
 const enemyWidth = 30;
 const enemyHeight = 30;
 const enemySpeed = 2;
+const numberOfEnemies = 10;
 let enemies = [];
-const maxEnemies = 5;
+
+function initEnemies() {
+  for (let i = 0; i < numberOfEnemies; i++) {
+    enemies.push({
+      x: (i * (enemyWidth + 10)) + 10,
+      y: 10,
+      movingRight: true,
+    });
+  }
+}
 
 function drawPlayer() {
   ctx.beginPath();
@@ -25,10 +38,10 @@ function drawPlayer() {
   ctx.closePath();
 }
 
-function drawBullet(x, y) {
+function drawProjectile(x, y) {
   ctx.beginPath();
-  ctx.rect(x, y, bulletWidth, bulletHeight);
-  ctx.fillStyle = "#FFFF00";
+  ctx.rect(x, y, projectileWidth, projectileHeight);
+  ctx.fillStyle = "#FFD700";
   ctx.fill();
   ctx.closePath();
 }
@@ -41,55 +54,36 @@ function drawEnemy(x, y) {
   ctx.closePath();
 }
 
-function spawnEnemy() {
-  if (enemies.length < maxEnemies) {
-    enemies.push({
-      x: Math.random() * (canvas.width - enemyWidth),
-      y: -enemyHeight,
-    });
-  }
-}
-
 function updateGame() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   drawPlayer();
-  bullets.forEach((bullet) => drawBullet(bullet.x, bullet.y));
+  projectiles.forEach((projectile) => drawProjectile(projectile.x, projectile.y));
   enemies.forEach((enemy) => drawEnemy(enemy.x, enemy.y));
 
-  bullets = bullets.filter((bullet) => {
-    bullet.y -= bulletSpeed;
-    return bullet.y + bulletHeight > 0;
-  });
+  // Update projectiles
+  projectiles.forEach((projectile, index) => {
+    projectile.y -= projectileSpeed;
 
-  enemies.forEach((enemy) => {
-    enemy.y += enemySpeed;
-  });
-
-  enemies = enemies.filter((enemy) => {
-    let keep = true;
-
-    bullets.forEach((bullet) => {
-      if (
-        bullet.y <= enemy.y + enemyHeight &&
-        bullet.x + bulletWidth >= enemy.x &&
-        bullet.x <= enemy.x + enemyWidth
-      ) {
-        keep = false;
-      }
-    });
-
-    return keep;
-  });
-
-  spawnEnemy();
-  requestAnimationFrame(updateGame);
-}
-
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Right" || e.key === "ArrowRight") {
-    playerX += playerSpeed;
-    if (playerX + playerWidth > canvas.width) {
-      playerX = canvas.width - playerWidth;
+    if (projectile.y < 0) {
+      projectiles.splice(index, 1);
+    } else {
+      enemies.forEach((enemy, enemyIndex) => {
+        if (
+          projectile.x >= enemy.x && projectile.x <= enemy.x + enemyWidth &&
+          projectile.y >= enemy.y && projectile.y <= enemy.y + enemyHeight
+        ) {
+          projectiles.splice(index, 1);
+          enemies.splice(enemyIndex, 1);
+        }
+      });
     }
-  } else if (
+  });
+
+  // Update enemies
+  enemies.forEach((enemy) => {
+    if (enemy.movingRight) {
+      enemy.x += enemySpeed;
+      if (enemy.x + enemyWidth > canvas.width) {
+        enemy.movingRight = false;
+        enemy
