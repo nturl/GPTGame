@@ -6,20 +6,16 @@ const playerHeight = 30;
 const playerSpeed = 5;
 let playerX = (canvas.width - playerWidth) / 2;
 
-const objectWidth = 20;
-const objectHeight = 20;
-const objectSpeed = 2;
-const numberOfObjects = 5;
-let objects = [];
+const bulletWidth = 5;
+const bulletHeight = 10;
+const bulletSpeed = 7;
+let bullets = [];
 
-function initObjects() {
-  for (let i = 0; i < numberOfObjects; i++) {
-    objects.push({
-      x: Math.random() * (canvas.width - objectWidth),
-      y: -objectHeight - i * (canvas.height / numberOfObjects),
-    });
-  }
-}
+const enemyWidth = 30;
+const enemyHeight = 30;
+const enemySpeed = 2;
+let enemies = [];
+const maxEnemies = 5;
 
 function drawPlayer() {
   ctx.beginPath();
@@ -29,60 +25,71 @@ function drawPlayer() {
   ctx.closePath();
 }
 
-function drawObject(x, y) {
+function drawBullet(x, y) {
   ctx.beginPath();
-  ctx.rect(x, y, objectWidth, objectHeight);
+  ctx.rect(x, y, bulletWidth, bulletHeight);
+  ctx.fillStyle = "#FFFF00";
+  ctx.fill();
+  ctx.closePath();
+}
+
+function drawEnemy(x, y) {
+  ctx.beginPath();
+  ctx.rect(x, y, enemyWidth, enemyHeight);
   ctx.fillStyle = "#FF0000";
   ctx.fill();
   ctx.closePath();
 }
 
-let score = 0;
-
-function drawScore() {
-  ctx.font = "16px Arial";
-  ctx.fillStyle = "#0095DD";
-  ctx.fillText("Score: " + score, 8, 20);
+function spawnEnemy() {
+  if (enemies.length < maxEnemies) {
+    enemies.push({
+      x: Math.random() * (canvas.width - enemyWidth),
+      y: -enemyHeight,
+    });
+  }
 }
 
 function updateGame() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   drawPlayer();
-  objects.forEach((object) => drawObject(object.x, object.y));
-  drawScore();
+  bullets.forEach((bullet) => drawBullet(bullet.x, bullet.y));
+  enemies.forEach((enemy) => drawEnemy(enemy.x, enemy.y));
 
-  objects.forEach((object) => {
-    object.y += objectSpeed;
-
-    if (object.y > canvas.height) {
-      object.x = Math.random() * (canvas.width - objectWidth);
-      object.y = -objectHeight;
-    }
-
-    if (
-      object.y + objectHeight > canvas.height - playerHeight &&
-      object.x > playerX - objectWidth &&
-      object.x < playerX + playerWidth
-    ) {
-      score++;
-      object.x = Math.random() * (canvas.width - objectWidth);
-      object.y = -objectHeight;
-    }
+  bullets = bullets.filter((bullet) => {
+    bullet.y -= bulletSpeed;
+    return bullet.y + bulletHeight > 0;
   });
 
-  if (score >= 20) {
-    gameOver();
-  } else {
-    requestAnimationFrame(updateGame);
-  }
+  enemies.forEach((enemy) => {
+    enemy.y += enemySpeed;
+  });
+
+  enemies = enemies.filter((enemy) => {
+    let keep = true;
+
+    bullets.forEach((bullet) => {
+      if (
+        bullet.y <= enemy.y + enemyHeight &&
+        bullet.x + bulletWidth >= enemy.x &&
+        bullet.x <= enemy.x + enemyWidth
+      ) {
+        keep = false;
+      }
+    });
+
+    return keep;
+  });
+
+  spawnEnemy();
+  requestAnimationFrame(updateGame);
 }
 
-function gameOver() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.font = "24px Arial";
-  ctx.fillStyle = "#0095DD";
-  ctx.fillText("Game Over! Final Score: " + score, canvas.width / 2 - 120, canvas.height / 2);
-}
-
-document.addEventListener("keydown", keyDownHandler,
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Right" || e.key === "ArrowRight") {
+    playerX += playerSpeed;
+    if (playerX + playerWidth > canvas.width) {
+      playerX = canvas.width - playerWidth;
+    }
+  } else if (
