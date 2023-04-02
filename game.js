@@ -86,4 +86,30 @@ function updateGame() {
       enemy.x += enemySpeed;
       if (enemy.x + enemyWidth > canvas.width) {
         enemy.movingRight = false;
-        enemy
+        enemy.y += enemyHeight;
+      }
+    } else {
+      enemy.x -= enemySpeed;
+      if (enemy.x < 0) {
+        enemy.movingRight = true;
+        enemy.y += enemyHeight;
+      }
+    }
+  });
+
+  requestAnimationFrame(updateGame);
+}
+
+document.addEventListener("keydown", keyDownHandler, false);
+document.addEventListener("keyup", keyUpHandler, false);
+
+let rightPressed = false;
+let leftPressed = false;
+let spacePressed = false;
+
+function keyDownHandler(event) {
+  if (event.key === "Right" || event.key === "ArrowRight") {
+    rightPressed = true;
+  } else if (event.key === "Left" || event.key === "ArrowLeft") {
+    leftPressed = true;
+  }
