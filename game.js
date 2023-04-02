@@ -111,3 +111,25 @@ function updateGame() {
 
   if (spacePressed && !projectiles.some((p) => p.active)) {
     projectiles.push({ x: playerX + (playerWidth / 2) - (projectileWidth / 2), y: canvas.height - playerHeight - projectileHeight
+                      
+                      
+                      
+  function keyDownHandler(event) {
+  if (event.key === "Right" || event.key === "ArrowRight") {
+    rightPressed = true;
+  } else if (event.key === "Left" || event.key === "ArrowLeft") {
+    leftPressed = true;
+  } else if (event.code === "Space") {
+    spacePressed = true;
+  }
+}
+
+function keyUpHandler(event) {
+  if (event.key === "Right" || event.key === "ArrowRight") {
+    rightPressed = false;
+  } else if (event.key === "Left" || event.key === "ArrowLeft") {
+    leftPressed = false;
+  } else if (event.code === "Space") {
+    spacePressed = false;
+  }
+}
