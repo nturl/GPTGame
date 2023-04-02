@@ -97,19 +97,17 @@ function updateGame() {
     }
   });
 
-  requestAnimationFrame(updateGame);
-}
-
-document.addEventListener("keydown", keyDownHandler, false);
-document.addEventListener("keyup", keyUpHandler, false);
-
-let rightPressed = false;
-let leftPressed = false;
-let spacePressed = false;
-
-function keyDownHandler(event) {
-  if (event.key === "Right" || event.key === "ArrowRight") {
-    rightPressed = true;
-  } else if (event.key === "Left" || event.key === "ArrowLeft") {
-    leftPressed = true;
+  if (rightPressed) {
+    playerX += playerSpeed;
+    if (playerX + playerWidth > canvas.width) {
+      playerX = canvas.width - playerWidth;
+    }
+  } else if (leftPressed) {
+    playerX -= playerSpeed;
+    if (playerX < 0) {
+      playerX = 0;
+    }
   }
+
+  if (spacePressed && !projectiles.some((p) => p.active)) {
+    projectiles.push({ x: playerX + (playerWidth / 2) - (projectileWidth / 2), y: canvas.height - playerHeight - projectileHeight
